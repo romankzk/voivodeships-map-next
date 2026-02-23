@@ -123,13 +123,11 @@ export default function HistoricalMap() {
                     />
                 </>
             )}
-
-            
+   
             <TitleControl />
-            <InfoControl />
-
-            <SearchControl />
+            <InfoControl />  
             <TimelineControl /> 
+            <SearchControl />
             <EditButtonControl />
         </MapProvider>
     );

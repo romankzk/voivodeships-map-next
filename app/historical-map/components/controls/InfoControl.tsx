@@ -29,7 +29,7 @@ function DefaultHint() {
         ? 'Натисніть на область на карті, щоб переглянути детальну інформацію'
         : 'Наведіть курсор на область на карті, щоб переглянути детальну інформацію';
 
-    return <div className="p-3 sm:p-4 text-slate-500 dark:text-slate-600 text-xs sm:text-base">{hint}</div>;
+    return <div className="p-3 sm:p-4 text-slate-500 dark:text-slate-600 md:text-sm text-xs sm:text-base">{hint}</div>;
 }
 
 function RegionInfo({ props }: { props: NonNullable<ReturnType<typeof useMapContext>['hoveredRegion']> }) {
