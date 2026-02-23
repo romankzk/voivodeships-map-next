@@ -10,11 +10,13 @@ import {
     getOverrideCount,
     clearAllOverrides,
     subscribe,
+    exportOverridesForSave,
     type LayerType,
 } from '../store/overrides';
 import type { PeriodData } from '../types/index.ts';
 import { ArrowLeft, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
+import { saveDataChanges } from './actions';
 
 type FeatureEntry = {
     index: number;
@@ -45,6 +47,9 @@ export default function EditorPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [expandedFeature, setExpandedFeature] = useState<number | null>(null);
     const [overrideVersion, setOverrideVersion] = useState(0);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [reloadTrigger, setReloadTrigger] = useState(0);
 
     const createQueryString = useCallback(
         (name: string, value: string) => {
@@ -71,10 +76,13 @@ export default function EditorPage() {
         setData(null);
         setExpandedFeature(null);
 
+        // Add cache busting to force reload after save
+        const cacheBuster = reloadTrigger > 0 ? `?t=${Date.now()}` : '';
+
         Promise.all([
-            fetch(`/data/${periodConfig.areasFile}.geojson`, { signal: controller.signal }).then(r => r.json()),
-            fetch(`/data/${periodConfig.bordersFile}.geojson`, { signal: controller.signal }).then(r => r.json()),
-            fetch(`/data/${periodConfig.pointsFile}.geojson`, { signal: controller.signal }).then(r => r.json()),
+            fetch(`/data/${periodConfig.areasFile}.geojson${cacheBuster}`, { signal: controller.signal }).then(r => r.json()),
+            fetch(`/data/${periodConfig.bordersFile}.geojson${cacheBuster}`, { signal: controller.signal }).then(r => r.json()),
+            fetch(`/data/${periodConfig.pointsFile}.geojson${cacheBuster}`, { signal: controller.signal }).then(r => r.json()),
         ])
             .then(([areas, borders, points]) => {
                 setData({ areas, borders, points });
@@ -87,7 +95,7 @@ export default function EditorPage() {
             });
 
         return () => controller.abort();
-    }, [periodId]);
+    }, [periodId, reloadTrigger]);
 
     // Build the feature list for the selected layer
     const features: FeatureEntry[] = useMemo(() => {
@@ -107,6 +115,40 @@ export default function EditorPage() {
         router.push(`${pathname}?${createQueryString(key, value)}`);
     };
 
+    const handleSaveToFiles = async () => {
+        if (overrideCount === 0) {
+            setSaveMessage({ type: 'error', text: 'Немає змін для збереження' });
+            return;
+        }
+
+        if (!confirm(`Зберегти ${overrideCount} ${overrideCount === 1 ? 'зміну' : 'змін'}?`)) {
+            return;
+        }
+
+        setIsSaving(true);
+        setSaveMessage(null);
+
+        try {
+            const overrides = exportOverridesForSave();
+            const result = await saveDataChanges(overrides);
+
+            if (result.success) {
+                setSaveMessage({ type: 'success', text: 'Зміни успішно збережено!' });
+                // Clear overrides after successful save
+                clearAllOverrides();
+                // Trigger data reload to reflect saved changes
+                setReloadTrigger(prev => prev + 1);
+            } else {
+                setSaveMessage({ type: 'error', text: result.error || result.message || 'Помилка збереження' });
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+            setSaveMessage({ type: 'error', text: 'Не вдалося зберегти зміни' });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     /** Get the display name for a feature (for the list). */
     const featureLabel = (entry: FeatureEntry): string => {
         const p = entry.properties;
@@ -121,6 +163,7 @@ export default function EditorPage() {
     return (
         <div className="font-[Inter,sans-serif] w-full bg-white dark:bg-[#111827]">
             <div className=" max-w-[900px] mx-auto px-3 py-4 sm:p-5 min-h-screen box-border dark:bg-[#111827]">
+                {/* Page header */}
                 <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5">
                     <div className="flex items-center gap-3 sm:gap-4">
                         <Link href="/historical-map" className="flex items-center gap-2 text-xs text-[#2c3e50] no-underline px-3 py-1.5 rounded-md bg-slate-100 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 whitespace-nowrap">
@@ -136,6 +179,15 @@ export default function EditorPage() {
                         )}
                         {overrideCount > 0 && (
                             <button
+                                className="px-3 py-1.5 border border-green-500 rounded-md bg-white text-green-600 dark:bg-green-900 dark:text-white dark:border-green-900 text-xs cursor-pointer transition-all hover:bg-green-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={handleSaveToFiles}
+                                disabled={isSaving}
+                            >
+                                {isSaving ? 'Збереження...' : 'Зберегти зміни'}
+                            </button>
+                        )}
+                        {overrideCount > 0 && (
+                            <button
                                 className="px-3 py-1.5 border border-red-500 rounded-md bg-white text-red-500 dark:bg-red-900 dark:text-white dark:border-red-900 text-xs cursor-pointer transition-all hover:bg-red-500 hover:text-white"
                                 onClick={() => {
                                     if (confirm('Скинути всі зміни?')) clearAllOverrides();
@@ -147,10 +199,15 @@ export default function EditorPage() {
                     </div>
                 </header>
 
-                <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 my-2">
-                    <TriangleAlert size={14} /> Працює в тестовому режимі: зміни збережуться лише в цьому браузері і не будуть видимі іншим користувачам
-                </div>
-
+                {saveMessage && (
+                    <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg mb-3 ${
+                        saveMessage.type === 'success'
+                            ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                            : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                    }`}>
+                        {saveMessage.text}
+                    </div>
+                )}
 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 px-3 sm:px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-lg mb-4">
                     <div className="flex items-center gap-2">

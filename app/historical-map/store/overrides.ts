@@ -103,3 +103,27 @@ export function applyOverrides(
         }),
     };
 }
+
+/**
+ * Export all overrides in a format suitable for the save API.
+ */
+export function exportOverridesForSave() {
+    const result: Array<{
+        periodId: string;
+        layerType: LayerType;
+        featureIndex: number;
+        properties: Record<string, unknown>;
+    }> = [];
+
+    for (const [key, properties] of overrides) {
+        const [periodId, layerType, featureIndexStr] = key.split(':');
+        result.push({
+            periodId,
+            layerType: layerType as LayerType,
+            featureIndex: parseInt(featureIndexStr, 10),
+            properties,
+        });
+    }
+
+    return result;
+}
