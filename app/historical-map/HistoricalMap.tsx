@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-import { useMap } from './hooks/useMap';
+import { useMap, applyLabelOpacity } from './hooks/useMap';
 import { usePeriodData } from './hooks/usePeriodData';
 import { useApplyOverrides } from './hooks/useOverrides';
 import { MapProvider } from './context/MapContext';
@@ -61,6 +61,18 @@ export default function HistoricalMap() {
             searchLayer.remove();
         };
     }, [map, dataGroup, searchLayer]);
+
+    // Apply zoom-based opacity when data changes (e.g., period switch)
+    useEffect(() => {
+        if (!map || !effectiveData) return;
+
+        // Small delay to ensure labels are rendered before applying opacity
+        const timer = setTimeout(() => {
+            applyLabelOpacity(map.getZoom());
+        }, 100);
+
+        return () => clearTimeout(timer);
+    }, [map, effectiveData]);
 
     const handleHover = useCallback((props: AreaFeatureProperties) => {
         setHoveredRegion(props);
