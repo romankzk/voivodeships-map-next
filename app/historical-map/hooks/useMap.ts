@@ -38,7 +38,7 @@ const TILE_OPTIONS: L.TileLayerOptions = {
 export function useMap(containerRef: RefObject<HTMLDivElement | null>): L.Map | null {
     const mapRef = useRef<L.Map | null>(null);
     const tileLayerRef = useRef<L.TileLayer | null>(null);
-    const { theme, setTheme } = useTheme();
+    const { theme } = useTheme();
     const isDark = theme === 'dark';
 
     // Initialize map once

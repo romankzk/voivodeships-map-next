@@ -33,7 +33,7 @@ export default function Header() {
                     <Link className="text-gray-900 dark:text-[#F3F4F6] text-[15px] font-medium hover:text-[#2563EB] dark:hover:text-[#60A5FA] transition-colors" href="/stats">Мій внесок</Link>
                     <Link className="text-gray-900 dark:text-[#F3F4F6] text-[15px] font-medium hover:text-[#2563EB] dark:hover:text-[#60A5FA] transition-colors" href="/help">Посібники</Link>
                     <Link className="text-gray-900 dark:text-[#F3F4F6] text-[15px] font-medium hover:text-[#2563EB] dark:hover:text-[#60A5FA] transition-colors" href="/about">Про проєкт</Link>
-                    <Link className="text-gray-900 dark:text-[#F3F4F6] text-[15px] font-medium hover:text-[#2563EB] dark:hover:text-[#60A5FA] transition-colors" href="/historical-map">Карта адмінустрою</Link>
+                    <Link className="text-gray-900 dark:text-[#F3F4F6] text-[15px] font-medium hover:text-[#2563EB] dark:hover:text-[#60A5FA] transition-colors" href="/historical-map">Історична карта</Link>
                 </nav>
 
                 <div className="flex items-center gap-[10px] md:gap-[12px] lg:gap-[15px]">
