@@ -73,7 +73,7 @@ export default function Header() {
                             <Bell className="lucide lucide-bell w-5 h-5 text-gray-900 dark:text-[#F3F4F6]" aria-hidden="true" />
                         </Link>
                         <span className="text-gray-900 dark:text-[#F3F4F6] text-[14px] font-medium max-w-[150px] truncate">
-                            romankozak97.ua@gmail.com
+                            user@gmail.com
                         </span>
                         <button className="px-[12px] h-[36px] rounded-lg border border-gray-300 dark:border-[#374151] bg-gray-100 dark:bg-[#1F2937] text-gray-900 dark:text-[#F3F4F6] text-[14px] font-medium hover:bg-gray-200 dark:hover:bg-[#374151] transition-colors">
                             Вийти
