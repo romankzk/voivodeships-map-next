@@ -4,7 +4,7 @@ This repository is a specialized port of the **voivodeships-map** project, rebui
 ### Migration & Architectural Highlights
 
 #### 1. Encapsulated Feature Module
-The map is no longer a standalone application but a self-contained feature module. It is located within the ``/src/features/historical-map`` directory, making it highly portable. It is integrated into the Next.js App Router via the ``/historical-map`` route.
+The map is no longer a standalone application but a self-contained feature module. It is located within the ``/app/historical-map`` directory, making it highly portable. It is integrated into the Next.js App Router via the ``/historical-map`` route.
 
 #### 2. SSR & Hydration Strategy
 Since Leaflet requires the ``window`` object, the map component is loaded using Next.js Dynamic Imports (``ssr: false``). This prevents server-side rendering errors and ensures the map initializes only once the browser environment is ready.
@@ -31,6 +31,8 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/romankzk/voivodeships-map-next.git
+```
+```bash
 cd voivodeships-map-next
 ```
 
